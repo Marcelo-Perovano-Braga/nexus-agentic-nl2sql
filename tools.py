@@ -1,8 +1,12 @@
 # tools.py
+import os
 import sqlite3
 from typing import Type, Optional
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 DB_PATH = 'demodb.db'
 
@@ -58,6 +62,45 @@ class SQLQueryExecutorTool(BaseTool):
         finally:
             conn.close()
 
+class SQLQueryInput(BaseModel):
+    query: str = Field(description="A consulta SQL completa a ser executada.")
+
+class DataPlottingTool(BaseTool):
+    name: str = "Data Plotting Tool"
+    description: str = "Use esta ferramenta para criar um gráfico de barras a partir de dados do banco de dados. A entrada deve ser uma consulta SQL que retorne exatamente duas colunas: uma para os rótulos (eixo X) e uma para os valores (eixo Y)."
+    args_schema: Type[BaseModel] = SQLQueryInput # Reutilizando o Input da SQLQueryTool
+
+    def _run(self, query: str) -> str:
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+
+            if df.shape[1] != 2:
+                return "Erro: A consulta SQL deve retornar exatamente duas colunas."
+            
+            # Renomeia as colunas para clareza no gráfico
+            df.columns = ['rótulos', 'valores']
+
+            plt.figure(figsize=(10, 6))
+            plot = sns.barplot(x='rótulos', y='valores', data=df)
+            plt.xticks(rotation=45, ha='right')
+            plt.title("Visualização dos Dados")
+            plt.xlabel(df.columns[0].replace('_', ' ').title())
+            plt.ylabel(df.columns[1].replace('_', ' ').title())
+            plt.tight_layout()
+
+            chart_path = "chart.png"
+            plt.savefig(chart_path)
+            plt.close() # Fecha a figura para liberar memória
+            
+            # Usa os.path.abspath que agora funcionará
+            return f"Gráfico criado com sucesso e salvo em: {os.path.abspath(chart_path)}"
+        except Exception as e:
+            return f"Erro ao criar o gráfico: {e}"
+
+
 # --- Instanciando as ferramentas ---
 schema_inspector_tool = SchemaInspectorTool()
 sql_query_tool = SQLQueryExecutorTool()
+data_plotting_tool = DataPlottingTool()

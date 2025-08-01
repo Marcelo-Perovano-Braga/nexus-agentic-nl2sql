@@ -2,6 +2,7 @@
 from crewai import Agent
 from langchain_openai import ChatOpenAI
 from tools import schema_inspector_tool, sql_query_tool
+from tools import data_plotting_tool
 
 # Definindo o LLM para todos os agentes
 llm = ChatOpenAI(model="gpt-4o-mini")
@@ -40,6 +41,15 @@ data_analyst_agent = Agent(
     role="Analista de Dados",
     goal="Analisar os dados brutos retornados pelo banco de dados e transformá-los em uma resposta clara e compreensível para o usuário.",
     backstory="Um analista de dados e comunicador que transforma tabelas e números em insights e respostas em linguagem natural.",
+    llm=llm,
+    verbose=True
+)
+
+data_visualization_agent = Agent(
+    role="Especialista em Visualização de Dados",
+    goal="Criar gráficos e visualizações claras a partir de dados brutos para responder a perguntas do usuário.",
+    backstory="Um designer de dados talentoso que transforma números e tabelas em gráficos bonitos e fáceis de entender.",
+    tools=[data_plotting_tool],
     llm=llm,
     verbose=True
 )
