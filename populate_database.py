@@ -1,9 +1,7 @@
-# populate_database.py
 import sqlite3
 from faker import Faker
 import random
 
-# Initialize Faker to generate data in Brazilian Portuguese for more realism
 fake = Faker('pt_BR')
 DB_PATH = 'demodb.db'
 
@@ -11,7 +9,6 @@ def populate_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # (Opcional) Limpa a tabela para evitar dados duplicados ao rodar de novo
     print("Limpando dados antigos da tabela 'documentos'...")
     cursor.execute("DELETE FROM documentos;")
 
@@ -31,7 +28,6 @@ def populate_db():
         documentos_exemplo
     )
 
-    # Salva as mudanças e fecha a conexão
     conn.commit()
     conn.close()
     
