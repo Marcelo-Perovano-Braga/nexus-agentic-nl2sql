@@ -1,6 +1,8 @@
-# tools.py
+# tools.py (Corrected and Simplified)
+
 import os
 import sqlite3
+from langchain_core.tools import BaseTool
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -9,6 +11,8 @@ from langchain_community.tools import HumanInputRun
 
 DB_PATH = 'demodb.db'
 
+# --- Ferramenta para Inspecionar o Esquema do Banco de Dados ---
+# This is the only version you need. It's simple and correct.
 @tool("Schema Inspector Tool")
 def schema_inspector_tool(table_name: str = '') -> str:
     """
@@ -29,6 +33,7 @@ def schema_inspector_tool(table_name: str = '') -> str:
     finally:
         conn.close()
 
+# --- Ferramenta para Executar Consultas SQL ---
 @tool("SQL Query Executor Tool")
 def sql_query_tool(query: str) -> str:
     """Executa uma consulta SQL no banco de dados e retorna o resultado."""
@@ -43,6 +48,7 @@ def sql_query_tool(query: str) -> str:
     finally:
         conn.close()
 
+# --- Ferramenta para Plotar Gráficos ---
 @tool("Data Plotting Tool")
 def data_plotting_tool(query: str) -> str:
     """
@@ -68,6 +74,7 @@ def data_plotting_tool(query: str) -> str:
     except Exception as e:
         return f"Erro ao criar o gráfico: {e}"
 
+# --- Ferramenta para Editar o Banco de Dados ---
 @tool("Database Editor Tool")
 def data_editor_tool(table_name: str, column_to_update: str, new_value: str, record_id: int) -> str:
     """
@@ -88,6 +95,7 @@ def data_editor_tool(table_name: str, column_to_update: str, new_value: str, rec
     finally:
         conn.close()
 
+# --- Ferramenta para Inserir Dados ---
 @tool("Data Inserter Tool")
 def data_inserter_tool(nome_arquivo: str, tipo: str, data_criacao: str, resumo: str) -> str:
     """
@@ -106,6 +114,7 @@ def data_inserter_tool(nome_arquivo: str, tipo: str, data_criacao: str, resumo: 
     finally:
         conn.close()
 
+# --- Ferramenta para Deletar Dados ---
 @tool("Data Deleter Tool")
 def data_deleter_tool(record_id: int) -> str:
     """
@@ -125,5 +134,6 @@ def data_deleter_tool(record_id: int) -> str:
         return f"Erro ao deletar o registro: {e}"
     finally:
         conn.close()
-        
+
+# --- Ferramenta para Interação Humana ---        
 human_tool = HumanInputRun()

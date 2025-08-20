@@ -1,11 +1,23 @@
+# main.py
 from crewai import Crew, Process
+# MUDANÇA 1: Importar o novo agente e tarefa de visualização
 from agents import (
+    schema_analyst_agent, 
+    sql_query_writer_agent, 
+    db_executor_agent, 
+    data_analyst_agent,
+    data_visualization_agent
     schema_analyst_agent, sql_query_writer_agent, db_executor_agent,
     data_analyst_agent, database_editor_agent, data_verifier_agent,
     data_visualization_agent, data_inserter_agent, data_deleter_agent,
     query_optimizer_agent
 )
 from tasks import (
+    schema_analysis_task, 
+    sql_writing_task, 
+    query_execution_task, 
+    data_analysis_task,
+    data_visualization_task
     schema_analysis_task, sql_writing_task, query_execution_task,
     data_analysis_task, edit_database_task, verify_edit_task,
     data_visualization_task, insert_data_task, delete_data_task,
@@ -16,18 +28,33 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def run_crew():
+    print("## Bem-vindo à Equipe de Análise de Banco de Dados! ##")
+    print("-----------------------------------------------------")
+    
+    # MUDANÇA 2: Adicionar a nova opção ao menu
     print("## Bem-vindo à Equipe de Gerenciamento de Banco de Dados! ##")
     print("-----------------------------------------------------------")
 
     print("Escolha uma ação:")
+    print("1: Fazer uma pergunta em linguagem natural sobre os dados")
+    print("2: Criar um gráfico a partir de uma pergunta sobre os dados")
+    choice = input("Digite 1 ou 2: ")
     print("1: Buscar e/ou Editar um registro")
     print("2: Criar um gráfico a partir dos dados")
     print("3: Adicionar um novo registro")
     print("4: Deletar um registro")
     choice = input("Digite 1, 2, 3 ou 4: ")
 
+    # --- FLUXO DE TRABALHO 1: PERGUNTA E RESPOSTA ---
     #Busca e edição:
     if choice == '1':
+        question = input("Qual informação você gostaria de obter do banco de dados?\n")
+        
+        crew = Crew(
+            agents=[schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent],
+            tasks=[schema_analysis_task, sql_writing_task, query_execution_task, data_analysis_task],
+            process=Process.sequential,
+            verbose=2
         initial_question = input("\nQual informação você gostaria de obter do banco de dados?\n")
 
         #Primeiro, otimiza a pergunta:
@@ -37,9 +64,12 @@ def run_crew():
             verbose=1,
             telemetry=False
         )
+        
+        result = crew.kickoff(inputs={'question': question})
         optimized_question = optimizer_crew.kickoff(inputs={'question': initial_question})
         print(f"\nPergunta Otimizada: {optimized_question}")
 
+    # --- MUDANÇA 3: NOVO FLUXO DE TRABALHO PARA VISUALIZAÇÃO ---
         #Em seguida, executa a busca:
         search_crew = Crew(
             agents=[schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, translator_agent],
@@ -71,8 +101,10 @@ def run_crew():
 
     #Criação de Gráfico:
     elif choice == '2':
+        question = input("Qual gráfico você gostaria de criar? (ex: um gráfico de barras mostrando a contagem de documentos por tipo)\n")
         question = input("\nDescreva o gráfico que você gostaria de criar:\n")
-        
+
+        # Esta equipe precisa do Analista de Esquema, do Escritor de SQL e do novo Agente de Visualização
         optimizer_crew = Crew(
             agents=[query_optimizer_agent],
             tasks=[query_optimization_task],
@@ -85,9 +117,17 @@ def run_crew():
         crew = Crew(
             agents=[schema_analyst_agent, sql_query_writer_agent, data_visualization_agent],
             tasks=[schema_analysis_task, sql_writing_task, data_visualization_task],
+            process=Process.sequential,
+            verbose=2
             process=Process.sequential, verbose=2,
             telemetry=False
         )
+        
+        result = crew.kickoff(inputs={'question': question})
+        
+    else:
+        print("Opção inválida. Por favor, reinicie o programa.")
+        return
         result = crew.kickoff(inputs={'question': optimized_question})
         print("\n\n########################\n## Resposta Final da Equipe:\n########################\n")
         print(result)
@@ -102,6 +142,10 @@ def run_crew():
 
         inputs = {'nome_arquivo': nome, 'tipo': tipo, 'data_criacao': data, 'resumo': resumo}
 
+    print("\n\n########################")
+    print("## Resposta Final da Equipe:")
+    print("########################\n")
+    print(result)
         crew = Crew(
             agents=[data_inserter_agent],
             tasks=[insert_data_task],

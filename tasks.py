@@ -1,4 +1,6 @@
+# tasks.py
 from crewai import Task
+from agents import schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, data_visualization_agent
 from agents import (
     schema_analyst_agent, 
     sql_query_writer_agent, 
@@ -63,6 +65,9 @@ data_analysis_task = Task(
         "para escrever uma nova consulta que responda à pergunta (ex: usando COUNT)."
     ),
     expected_output=(
+        "A resposta final e formatada para o usuário. "
+        "Esta DEVE ser uma lista numerada de cada manual, com seu nome, data e um resumo do seu conteúdo. "
+        "Não inclua nenhuma conversa ou introdução, apenas a lista."
         "A resposta final e formatada para o usuário. Se a pergunta for sobre contagem, "
         "a resposta deve começar com o número total."
     ),
@@ -74,13 +79,10 @@ data_analysis_task = Task(
 data_visualization_task = Task(
     description=(
         "O usuário quer um gráfico para responder à sua pergunta: '{question}'. "
-        "Primeiro, você deve delegar para o 'Engenheiro de Queries SQL' a tarefa de escrever uma consulta SQL que retorne os dados necessários. "
-        "A consulta DEVE retornar exatamente duas colunas (uma para os rótulos e outra para os valores). "
-        "Depois de obter a consulta SQL, sua tarefa é usar a 'Data Plotting Tool' para criar o gráfico."
     ),
     expected_output="A confirmação de que o gráfico foi criado e o caminho onde o arquivo de imagem foi salvo.",
     agent=data_visualization_agent,
-    context=[sql_writing_task]
+    context=[sql_writing_task] # Depends on the SQL writer
 )
 
 # Tarefa 6: Edição de Registro
