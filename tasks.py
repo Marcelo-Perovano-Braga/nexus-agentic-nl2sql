@@ -1,5 +1,4 @@
 from crewai import Task
-from agents import schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, data_visualization_agent
 from agents import (
     schema_analyst_agent, 
     sql_query_writer_agent, 
@@ -57,18 +56,17 @@ query_execution_task = Task(
 # Tarefa 4: Analisar os dados e dar a resposta final
 data_analysis_task = Task(
     description=(
-        "Analise os dados brutos da consulta do contexto e a pergunta original do usuário '{question}'. "
-        "Sua principal responsabilidade é responder DIRETAMENTE à pergunta do usuário. "
-        "Se o usuário perguntar 'quantos', sua resposta final DEVE ser um número. "
-        "Se a consulta inicial não fornecer a resposta final, você DEVE delegar para o 'Engenheiro de Queries SQL' "
-        "para escrever uma nova consulta que responda à pergunta (ex: usando COUNT)."
+        "Analise os dados brutos resultantes da consulta do contexto e a pergunta original do usuário: '{question}'. "
+        "Sua principal responsabilidade é responder DIRETAMENTE à pergunta do usuário usando APENAS os dados fornecidos. "
+        "Se a consulta inicial não fornecer a resposta completa, você DEVE delegar para o 'Engenheiro de Queries SQL' "
+        "para escrever uma nova consulta que busque a informação faltante."
     ),
     expected_output=(
-        "A resposta final e formatada para o usuário. "
-        "Esta DEVE ser uma lista numerada de cada manual, com seu nome, data e um resumo do seu conteúdo. "
-        "Não inclua nenhuma conversa ou introdução, apenas a lista."
-        "A resposta final e formatada para o usuário. Se a pergunta for sobre contagem, "
-        "a resposta deve começar com o número total."
+        "A resposta final formatada para o usuário. "
+        "Regras estritas: "
+        "1. Se a pergunta for sobre contagem ou quantidade, a resposta deve focar no número exato. "
+        "2. Se os dados retornarem múltiplos registros, formate-os de maneira clara e legível (ex: uma lista em tópicos), destacando as colunas mais relevantes. "
+        "3. Não inclua conversas, introduções ou suposições. Retorne apenas a resposta baseada nos dados extraídos."
     ),
     agent=data_analyst_agent,
     context=[query_execution_task]
@@ -115,12 +113,8 @@ insert_data_task = Task(
 
 # Tarefa 9: Exclusão de Registro
 delete_data_task = Task(
-    description=(
-        "Delete o registro da tabela 'documentos' com o ID '{record_id}'. "
-        "IMPORTANTE: Antes de usar a 'Data Deleter Tool', você DEVE usar a ferramenta 'human_tool' para pedir confirmação ao usuário, "
-        "fazendo a pergunta: 'Você tem certeza que deseja deletar o registro com ID {record_id}? Esta ação é irreversível. (sim/não)'"
-    ),
-    expected_output="A confirmação de que o registro foi ou não deletado, com base na resposta do usuário.",
+    description="Delete o registro da tabela 'documentos' com o ID '{record_id}' usando a ferramenta fornecida.",
+    expected_output="A confirmação clara e direta de que o registro foi deletado do banco de dados.",
     agent=data_deleter_agent
 )
 

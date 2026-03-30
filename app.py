@@ -177,13 +177,20 @@ elif app_mode == "Gerenciar Registros":
         st.warning("CUIDADO: Esta ação é irreversível.")
         with st.form("delete_form"):
             record_id_del = st.number_input("ID do registro a ser deletado", min_value=1, step=1)
+            
+            # Novo freio de segurança na UI
+            confirm_delete = st.checkbox("Eu entendo as consequências e confirmo a exclusão deste registro.")
+            
             submitted_del = st.form_submit_button("Deletar Registro")
 
             if submitted_del:
-                crew = Crew(
-                    agents=[data_deleter_agent],
-                    tasks=[delete_data_task],
-                    verbose=2,
-                    telemetry=False
-                )
-                run_crew_and_display_results(crew, {'record_id': int(record_id_del)})
+                if confirm_delete:
+                    crew = Crew(
+                        agents=[data_deleter_agent],
+                        tasks=[delete_data_task],
+                        verbose=2,
+                        telemetry=False
+                    )
+                    run_crew_and_display_results(crew, {'record_id': int(record_id_del)})
+                else:
+                    st.error("Você precisa marcar a caixa de confirmação para deletar um registro.")

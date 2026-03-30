@@ -91,9 +91,9 @@ data_inserter_agent = Agent(
 
 data_deleter_agent = Agent(
     role="Especialista em Exclusão de Dados",
-    goal="Remover registros do banco de dados de forma segura, sempre pedindo confirmação.",
-    backstory="Um operador cauteloso que sempre verifica com um humano antes de agir.",
-    tools=[data_deleter_tool, human_tool],
+    goal="Remover registros do banco de dados de forma direta e eficiente, assumindo que a autorização do usuário já foi validada previamente pela interface.",
+    backstory="Um operador de banco de dados estrito e focado, que executa comandos de exclusão de dados de forma precisa e sem hesitação, sabendo que os protocolos de segurança já foram cumpridos.",
+    tools=[data_deleter_tool],
     llm=llm,
     verbose=True
 )
