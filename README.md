@@ -26,4 +26,4 @@ N.E.X.U.S. is an **Agentic AI system** designed to bridge the gap between non-te
    `pip install -r requirements.txt`
 3. **Set up your `.env`** with the required LLM API keys.
 4. **Run the application**:  
-   `python main.py`
+   `streamlit run app.py`

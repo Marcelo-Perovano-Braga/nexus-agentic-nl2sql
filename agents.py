@@ -1,7 +1,5 @@
 from crewai import Agent
 from langchain_openai import ChatOpenAI
-from tools import schema_inspector_tool, sql_query_tool
-from tools import data_plotting_tool
 from tools import (
     schema_inspector_tool, 
     sql_query_tool, 
@@ -9,7 +7,6 @@ from tools import (
     data_editor_tool,
     data_inserter_tool,
     data_deleter_tool,
-    human_tool
 )
 
 # Definindo o LLM para todos os agentes
