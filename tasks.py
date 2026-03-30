@@ -1,4 +1,3 @@
-# tasks.py
 from crewai import Task
 from agents import schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, data_visualization_agent
 from agents import (
@@ -82,7 +81,7 @@ data_visualization_task = Task(
     ),
     expected_output="A confirmação de que o gráfico foi criado e o caminho onde o arquivo de imagem foi salvo.",
     agent=data_visualization_agent,
-    context=[sql_writing_task] # Depends on the SQL writer
+    context=[sql_writing_task]
 )
 
 # Tarefa 6: Edição de Registro
@@ -144,5 +143,5 @@ translation_task = Task(
     description="Pegue a resposta final da tarefa de análise de dados e traduza todo o seu conteúdo para o português. Mantenha a formatação original.",
     expected_output="O texto completo da tarefa anterior, traduzido para o português.",
     agent=translator_agent,
-    context=[data_analysis_task] # Depende da tarefa de análise de dados
+    context=[data_analysis_task]
 )

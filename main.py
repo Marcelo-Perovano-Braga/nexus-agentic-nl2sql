@@ -1,6 +1,4 @@
-# main.py
 from crewai import Crew, Process
-# MUDANÇA 1: Importar o novo agente e tarefa de visualização
 from agents import (
     schema_analyst_agent, 
     sql_query_writer_agent, 
@@ -31,7 +29,6 @@ def run_crew():
     print("## Bem-vindo à Equipe de Análise de Banco de Dados! ##")
     print("-----------------------------------------------------")
     
-    # MUDANÇA 2: Adicionar a nova opção ao menu
     print("## Bem-vindo à Equipe de Gerenciamento de Banco de Dados! ##")
     print("-----------------------------------------------------------")
 
@@ -45,7 +42,6 @@ def run_crew():
     print("4: Deletar um registro")
     choice = input("Digite 1, 2, 3 ou 4: ")
 
-    # --- FLUXO DE TRABALHO 1: PERGUNTA E RESPOSTA ---
     #Busca e edição:
     if choice == '1':
         question = input("Qual informação você gostaria de obter do banco de dados?\n")
@@ -69,7 +65,6 @@ def run_crew():
         optimized_question = optimizer_crew.kickoff(inputs={'question': initial_question})
         print(f"\nPergunta Otimizada: {optimized_question}")
 
-    # --- MUDANÇA 3: NOVO FLUXO DE TRABALHO PARA VISUALIZAÇÃO ---
         #Em seguida, executa a busca:
         search_crew = Crew(
             agents=[schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, translator_agent],
@@ -104,7 +99,6 @@ def run_crew():
         question = input("Qual gráfico você gostaria de criar? (ex: um gráfico de barras mostrando a contagem de documentos por tipo)\n")
         question = input("\nDescreva o gráfico que você gostaria de criar:\n")
 
-        # Esta equipe precisa do Analista de Esquema, do Escritor de SQL e do novo Agente de Visualização
         optimizer_crew = Crew(
             agents=[query_optimizer_agent],
             tasks=[query_optimization_task],

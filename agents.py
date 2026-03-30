@@ -1,4 +1,3 @@
-# agents.py
 from crewai import Agent
 from langchain_openai import ChatOpenAI
 from tools import schema_inspector_tool, sql_query_tool

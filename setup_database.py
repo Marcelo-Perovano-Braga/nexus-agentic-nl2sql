@@ -1,4 +1,3 @@
-# setup_database.py
 import sqlite3
 
 # Conecta ao banco de dados (o arquivo será criado se não existir)

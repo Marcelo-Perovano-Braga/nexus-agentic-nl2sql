@@ -1,4 +1,3 @@
-# tools.py (Corrected and Simplified)
 
 import os
 import sqlite3
@@ -11,8 +10,6 @@ from langchain_community.tools import HumanInputRun
 
 DB_PATH = 'demodb.db'
 
-# --- Ferramenta para Inspecionar o Esquema do Banco de Dados ---
-# This is the only version you need. It's simple and correct.
 @tool("Schema Inspector Tool")
 def schema_inspector_tool(table_name: str = '') -> str:
     """
