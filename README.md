@@ -10,7 +10,7 @@ N.E.X.U.S. is an **Agentic AI system** designed to bridge the gap between non-te
 
 ## 🛠️ Tech Stack
 * **Orchestration**: CrewAI.
-* **Language**: Python (Advanced).
+* **Language**: Python.
 * **Data**: SQL & PostgreSQL.
 * **AI Models**: Integration with GPT-4/local LLMs for reasoning and code generation.
 
