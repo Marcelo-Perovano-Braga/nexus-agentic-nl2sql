@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from faker import Faker
+import random
 import streamlit as st
 import pandas as pd
 import sqlite3
@@ -20,6 +22,58 @@ from agents import (
 )
 
 DB_PATH = 'demodb.db'
+
+# --- BOOTSTRAP ROUTINE ---
+def init_db():
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # 1. Ensure the schema exists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS documentos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome_arquivo TEXT NOT NULL,
+                tipo TEXT NOT NULL,
+                data_criacao TEXT NOT NULL,
+                resumo TEXT
+            )
+        ''')
+        
+        # 2. Check if the table is empty
+        cursor.execute("SELECT COUNT(*) FROM documentos")
+        count = cursor.fetchone()[0]
+        
+        # 3. Seed data ONLY if the database is empty (State Persistence)
+        if count == 0:
+            st.sidebar.info("System Initializing: Provisioning 50 synthetic records...")
+            fake = Faker('pt_BR')
+            documentos_exemplo = []
+            tipos_de_documento = ['Relatório', 'Apresentação', 'Feedback', 'Contrato', 'Planilha', 'Manual']
+
+            for _ in range(50):
+                nome_arquivo = f"{fake.word()}_{fake.word()}_{random.randint(2022, 2025)}.{fake.random_element(elements=('pdf', 'docx', 'txt', 'xlsx'))}"
+                tipo = fake.random_element(elements=tipos_de_documento)
+                data_criacao = fake.date_between(start_date='-3y', end_date='today').strftime('%Y-%m-%d')
+                resumo = fake.paragraph(nb_sentences=3)
+                documentos_exemplo.append((nome_arquivo, tipo, data_criacao, resumo))
+
+            cursor.executemany(
+                'INSERT INTO documentos (nome_arquivo, tipo, data_criacao, resumo) VALUES (?,?,?,?)',
+                documentos_exemplo
+            )
+            conn.commit()
+            
+    except Exception as e:
+        st.sidebar.error(f"System Warning: Database initialization failed - {e}")
+    finally:
+        if conn:
+            conn.close()
+
+# Execute the bootstrap routine to guarantee system state
+init_db()
+# -------------------------
 
 #Dashboard
 def show_dashboard():
