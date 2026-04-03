@@ -24,6 +24,8 @@ N.E.X.U.S. is an **Agentic AI system** designed to bridge the gap between non-te
 1. **Clone the repository**.
 2. **Install dependencies**:  
    `pip install -r requirements.txt`
-3. **Set up your `.env`** with the required LLM API keys.
+3. **Set up your `.env`** with the required LLM API keys:
+   ```env
+   OPENAI_API_KEY=your_openai_api_key_here
 4. **Run the application**:  
    `streamlit run app.py`
