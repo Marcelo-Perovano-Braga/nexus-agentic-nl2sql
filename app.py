@@ -9,18 +9,13 @@ import sqlite3
 import os
 from crewai import Crew, Process
 from tasks import (
-    schema_analysis_task, sql_writing_task, query_execution_task,
-    data_analysis_task, edit_database_task, verify_edit_task,
+    edit_database_task, verify_edit_task, data_extraction_task,
     data_visualization_task, insert_data_task, delete_data_task,
-    query_optimization_task, translation_task
 )
 from agents import (
-    schema_analyst_agent, sql_query_writer_agent, db_executor_agent,
-    data_analyst_agent, database_editor_agent, data_verifier_agent,
+    database_editor_agent, data_verifier_agent, database_specialist_agent,
     data_visualization_agent, data_inserter_agent, data_deleter_agent,
-    query_optimizer_agent, translator_agent
 )
-
 DB_PATH = 'demodb.db'
 
 # --- BOOTSTRAP ROUTINE ---
@@ -45,7 +40,7 @@ def init_db():
         cursor.execute("SELECT COUNT(*) FROM documentos")
         count = cursor.fetchone()[0]
         
-        # 3. Seed data ONLY if the database is empty (State Persistence)
+        # 3. Seed data ONLY if the database is empty.
         if count == 0:
             st.sidebar.info("System Initializing: Provisioning 50 synthetic records...")
             fake = Faker('pt_BR')
@@ -71,9 +66,17 @@ def init_db():
         if conn:
             conn.close()
 
-# Execute the bootstrap routine to guarantee system state
+# Execute the bootstrap routine to guarantee system state.
 init_db()
-# -------------------------
+
+def get_database_schema(db_path='demodb.db'):
+    """Extrai a estrutura exata do banco de dados (DDL) para o LLM."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+    schemas = cursor.fetchall()
+    conn.close()
+    return "\n\n".join([schema[0] for schema in schemas if schema[0]])
 
 #Dashboard
 def show_dashboard():
@@ -101,7 +104,7 @@ def show_dashboard():
     except Exception as e:
         st.error(f"Não foi possível carregar o dashboard: {e}")
 
-#Função de Execução
+#Running Function
 def run_crew_and_display_results(crew, inputs):
     with st.spinner("Agentes trabalhando... Isso pode levar um momento."):
         result = crew.kickoff(inputs=inputs)
@@ -113,10 +116,10 @@ def run_crew_and_display_results(crew, inputs):
     if "chart.png" in str(result) and os.path.exists("chart.png"):
         st.image("chart.png")
 
-#Layout da página
+#Page Layout
 st.set_page_config(page_title="CrewAI Database Manager", page_icon="🤖", layout="wide")
 
-#Barra lateral
+#Sidebar
 with st.sidebar:
     st.title("🤖 N.E.X.U.S")
     st.markdown(
@@ -132,7 +135,7 @@ with st.sidebar:
     st.markdown("### Desenvolvido por Marcelo P. Braga")
 
 
-#Navegação
+#Web Navigation
 
 if app_mode == "Dashboard":
     show_dashboard()
@@ -149,37 +152,32 @@ elif app_mode == "Busca Inteligente":
         if not question:
             st.warning("Por favor, digite uma pergunta.")
         else:
-            optimizer_crew = Crew(
-                agents=[query_optimizer_agent],
-                tasks=[query_optimization_task],
-                verbose=1,
-                telemetry=False
-            )
-            st.write("Otimizando sua pergunta...")
-            with st.spinner("Agente otimizador pensando..."):
-                optimized_question = optimizer_crew.kickoff(inputs={'question': question})
-            st.success(f"Pergunta Otimizada: {optimized_question}")
-
-            if "gráfico" in optimized_question.lower() or "visualização" in optimized_question.lower():
+            schema_string = get_database_schema(DB_PATH)
+            
+            if "gráfico" in question.lower() or "visualização" in question.lower():
                 st.write("Iniciando equipe de visualização de dados...")
                 crew = Crew(
-                    agents=[schema_analyst_agent, sql_query_writer_agent, data_visualization_agent],
-                    tasks=[schema_analysis_task, sql_writing_task, data_visualization_task],
+                    agents=[database_specialist_agent, data_visualization_agent],
+                    tasks=[data_extraction_task, data_visualization_task],
                     process=Process.sequential,
                     verbose=2,
                     telemetry=False
                 )
             else:
-                st.write("Iniciando equipe de busca de dados...")
+                st.write("Iniciando processamento N.E.X.U.S...")
                 crew = Crew(
-                    agents=[schema_analyst_agent, sql_query_writer_agent, db_executor_agent, data_analyst_agent, translator_agent],
-                    tasks=[schema_analysis_task, sql_writing_task, query_execution_task, data_analysis_task, translation_task],
-                    process=Process.sequential,
+                    agents=[database_specialist_agent],
+                    tasks=[data_extraction_task],
                     verbose=2,
                     telemetry=False
                 )
 
-            run_crew_and_display_results(crew, {'question': optimized_question})
+            inputs = {
+                'question': question,
+                'schema_context': schema_string
+            }
+
+            run_crew_and_display_results(crew, inputs)
 
 
 elif app_mode == "Gerenciar Registros":
@@ -232,7 +230,6 @@ elif app_mode == "Gerenciar Registros":
         with st.form("delete_form"):
             record_id_del = st.number_input("ID do registro a ser deletado", min_value=1, step=1)
             
-            # Novo freio de segurança na UI
             confirm_delete = st.checkbox("Eu entendo as consequências e confirmo a exclusão deste registro.")
             
             submitted_del = st.form_submit_button("Deletar Registro")

@@ -1,10 +1,10 @@
 import sqlite3
 
-# Conecta ao banco de dados (o arquivo será criado se não existir)
+# Establishes connection to the Database
 conn = sqlite3.connect('demodb.db')
 cursor = conn.cursor()
 
-# Cria uma tabela de "documentos"
+# Creates an "Documents" section if there is no one present 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS documentos (
         id INTEGER PRIMARY KEY,
@@ -15,7 +15,7 @@ cursor.execute('''
     )
 ''')
 
-# Insere alguns dados de exemplo
+# Fills the test Database with a few examples
 documentos_exemplo = [
     ('relatorio_vendas_q1.pdf', 'Relatório', '2025-04-15', 'Relatório trimestral sobre o desempenho de vendas no primeiro trimestre.'),
     ('apresentacao_marketing.pptx', 'Apresentação', '2025-05-20', 'Slides da nova campanha de marketing para o produto X.'),
@@ -26,6 +26,6 @@ cursor.executemany('INSERT INTO documentos (nome_arquivo, tipo, data_criacao, re
 
 print("Banco de dados 'demodb.db' e tabela 'documentos' criados com sucesso!")
 
-# Salva as mudanças e fecha a conexão
+# Saves all changes and closes connections
 conn.commit()
 conn.close()
