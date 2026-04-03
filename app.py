@@ -19,44 +19,45 @@ from agents import (
 DB_PATH = 'demodb.db'
 
 # --- BOOTSTRAP ROUTINE ---
+@st.cache_resource
 def init_db():
     conn = None
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        # 1. Ensure the schema exists
+        # 1. Ensure the schema exists (English schema)
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS documentos (
+            CREATE TABLE IF NOT EXISTS documents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome_arquivo TEXT NOT NULL,
-                tipo TEXT NOT NULL,
-                data_criacao TEXT NOT NULL,
-                resumo TEXT
+                file_name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                creation_date TEXT NOT NULL,
+                summary TEXT
             )
         ''')
         
         # 2. Check if the table is empty
-        cursor.execute("SELECT COUNT(*) FROM documentos")
+        cursor.execute("SELECT COUNT(*) FROM documents")
         count = cursor.fetchone()[0]
         
         # 3. Seed data ONLY if the database is empty.
         if count == 0:
             st.sidebar.info("System Initializing: Provisioning 50 synthetic records...")
-            fake = Faker('pt_BR')
-            documentos_exemplo = []
-            tipos_de_documento = ['Relatório', 'Apresentação', 'Feedback', 'Contrato', 'Planilha', 'Manual']
+            fake = Faker('en_US')
+            example_documents = []
+            document_types = ['Report', 'Presentation', 'Feedback', 'Contract', 'Spreadsheet', 'Manual']
 
             for _ in range(50):
-                nome_arquivo = f"{fake.word()}_{fake.word()}_{random.randint(2022, 2025)}.{fake.random_element(elements=('pdf', 'docx', 'txt', 'xlsx'))}"
-                tipo = fake.random_element(elements=tipos_de_documento)
-                data_criacao = fake.date_between(start_date='-3y', end_date='today').strftime('%Y-%m-%d')
-                resumo = fake.paragraph(nb_sentences=3)
-                documentos_exemplo.append((nome_arquivo, tipo, data_criacao, resumo))
+                file_name = f"{fake.word()}_{fake.word()}_{random.randint(2022, 2025)}.{fake.random_element(elements=('pdf', 'docx', 'txt', 'xlsx'))}"
+                doc_type = fake.random_element(elements=document_types)
+                creation_date = fake.date_between(start_date='-3y', end_date='today').strftime('%Y-%m-%d')
+                summary = fake.paragraph(nb_sentences=3)
+                example_documents.append((file_name, doc_type, creation_date, summary))
 
             cursor.executemany(
-                'INSERT INTO documentos (nome_arquivo, tipo, data_criacao, resumo) VALUES (?,?,?,?)',
-                documentos_exemplo
+                'INSERT INTO documents (file_name, type, creation_date, summary) VALUES (?,?,?,?)',
+                example_documents
             )
             conn.commit()
             
@@ -66,11 +67,11 @@ def init_db():
         if conn:
             conn.close()
 
-# Execute the bootstrap routine to guarantee system state.
+# Execute the bootstrap routine
 init_db()
 
 def get_database_schema(db_path='demodb.db'):
-    """Extrai a estrutura exata do banco de dados (DDL) para o LLM."""
+    """Extracts the exact database structure (DDL) for the LLM."""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
@@ -78,84 +79,82 @@ def get_database_schema(db_path='demodb.db'):
     conn.close()
     return "\n\n".join([schema[0] for schema in schemas if schema[0]])
 
-#Dashboard
+# Dashboard
 def show_dashboard():
-    st.subheader("📊 Dashboard do Banco de Dados")
+    st.subheader("📊 Database Dashboard")
     try:
         conn = sqlite3.connect(DB_PATH)
-        df = pd.read_sql_query("SELECT * FROM documentos", conn)
+        df = pd.read_sql_query("SELECT * FROM documents", conn)
         conn.close()
 
         total_records = len(df)
-        doc_types = df['tipo'].value_counts()
+        doc_types = df['type'].value_counts()
 
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Total de Documentos", total_records)
+            st.metric("Total Documents", total_records)
         with col2:
-            st.metric("Tipos de Documentos Diferentes", len(doc_types))
+            st.metric("Distinct Document Types", len(doc_types))
 
-        st.write("#### Contagem por Tipo de Documento")
+        st.write("#### Count by Document Type")
         st.bar_chart(doc_types)
 
-        st.write("#### Amostra dos Dados")
+        st.write("#### Data Sample")
         st.dataframe(df.head(10))
 
     except Exception as e:
-        st.error(f"Não foi possível carregar o dashboard: {e}")
+        st.error(f"Could not load the dashboard: {e}")
 
-#Running Function
+# Running Function
 def run_crew_and_display_results(crew, inputs):
-    with st.spinner("Agentes trabalhando... Isso pode levar um momento."):
+    with st.spinner("Agents are working... This may take a moment."):
         result = crew.kickoff(inputs=inputs)
 
     st.divider()
-    st.subheader("✅ Resposta Final da Equipe:")
+    st.subheader("✅ Final Crew Response:")
     st.markdown(result)
 
     if "chart.png" in str(result) and os.path.exists("chart.png"):
         st.image("chart.png")
 
-#Page Layout
+# Page Layout
 st.set_page_config(page_title="CrewAI Database Manager", page_icon="🤖", layout="wide")
 
-#Sidebar
+# Sidebar
 with st.sidebar:
     st.title("🤖 N.E.X.U.S")
     st.markdown(
-        "Bem vindo ao NEXUS! Uma tripulação de I.A que é "
-        "capaz de interagir com um banco de dados usando linguagem natural."
+        "Welcome to NEXUS! An AI crew capable of interacting "
+        "with a database using natural language."
     )
     st.divider()
     app_mode = st.radio(
-        "Escolha uma Ação:",
-        ["Dashboard", "Busca Inteligente", "Gerenciar Registros"]
+        "Choose an Action:",
+        ["Dashboard", "Smart Search", "Manage Records"]
     )
     st.divider()
-    st.markdown("### Desenvolvido por Marcelo P. Braga")
+    st.markdown("### Developed by Marcelo P. Braga")
 
-
-#Web Navigation
-
+# Web Navigation
 if app_mode == "Dashboard":
     show_dashboard()
 
-elif app_mode == "Busca Inteligente":
-    st.header("❓ Busca Inteligente e Visualização de Dados")
+elif app_mode == "Smart Search":
+    st.header("❓ Smart Search & Data Visualization")
 
     question = st.text_input(
-        "Descreva a informação ou o gráfico que você procura:",
-        placeholder="Ex: 'Liste os 5 relatórios mais recentes' ou 'crie um gráfico de barras da contagem por tipo'"
+        "Describe the information or chart you are looking for:",
+        placeholder="Ex: 'List the 5 most recent reports' or 'create a bar chart of counts by type'"
     )
 
-    if st.button("Executar Busca"):
+    if st.button("Execute Search"):
         if not question:
-            st.warning("Por favor, digite uma pergunta.")
+            st.warning("Please enter a question.")
         else:
             schema_string = get_database_schema(DB_PATH)
             
-            if "gráfico" in question.lower() or "visualização" in question.lower():
-                st.write("Iniciando equipe de visualização de dados...")
+            if "chart" in question.lower() or "plot" in question.lower() or "graph" in question.lower():
+                st.write("Initializing data visualization crew...")
                 crew = Crew(
                     agents=[database_specialist_agent, data_visualization_agent],
                     tasks=[data_extraction_task, data_visualization_task],
@@ -164,7 +163,7 @@ elif app_mode == "Busca Inteligente":
                     telemetry=False
                 )
             else:
-                st.write("Iniciando processamento N.E.X.U.S...")
+                st.write("Initializing N.E.X.U.S processing...")
                 crew = Crew(
                     agents=[database_specialist_agent],
                     tasks=[data_extraction_task],
@@ -179,23 +178,22 @@ elif app_mode == "Busca Inteligente":
 
             run_crew_and_display_results(crew, inputs)
 
+elif app_mode == "Manage Records":
+    st.header("✍️ Add, Edit, or Delete Records")
 
-elif app_mode == "Gerenciar Registros":
-    st.header("✍️ Adicionar, Editar ou Deletar Registros")
-
-    tab1, tab2, tab3 = st.tabs(["Adicionar Registro", "Editar Registro", "Deletar Registro"])
+    tab1, tab2, tab3 = st.tabs(["Add Record", "Edit Record", "Delete Record"])
 
     with tab1:
-        st.subheader("Adicionar Novo Documento")
+        st.subheader("Add New Document")
         with st.form("add_form"):
-            nome = st.text_input("Nome do arquivo")
-            tipo = st.text_input("Tipo de documento")
-            data = st.date_input("Data de criação")
-            resumo = st.text_area("Resumo do conteúdo")
-            submitted_add = st.form_submit_button("Adicionar Registro")
+            file_name = st.text_input("File Name")
+            doc_type = st.text_input("Document Type")
+            creation_date = st.date_input("Creation Date")
+            summary = st.text_area("Content Summary")
+            submitted_add = st.form_submit_button("Add Record")
 
             if submitted_add:
-                inputs = {'nome_arquivo': nome, 'tipo': tipo, 'data_criacao': data.strftime('%Y-%m-%d'), 'resumo': resumo}
+                inputs = {'file_name': file_name, 'type': doc_type, 'creation_date': creation_date.strftime('%Y-%m-%d'), 'summary': summary}
                 crew = Crew(
                     agents=[data_inserter_agent],
                     tasks=[insert_data_task],
@@ -205,16 +203,16 @@ elif app_mode == "Gerenciar Registros":
                 run_crew_and_display_results(crew, inputs)
 
     with tab2:
-        st.subheader("Editar um Registro Existente")
-        st.info("Dica: Use a 'Busca Inteligente' para encontrar o ID e o nome da coluna do registro que deseja alterar.")
+        st.subheader("Edit an Existing Record")
+        st.info("Tip: Use the 'Smart Search' to find the ID and column name of the record you want to change.")
         with st.form("edit_form"):
-            record_id = st.number_input("ID do registro a ser alterado", min_value=1, step=1)
-            column = st.text_input("Nome da coluna a ser alterada")
-            new_value = st.text_input("Novo valor para a coluna")
-            submitted_edit = st.form_submit_button("Editar Registro")
+            record_id = st.number_input("ID of the record to change", min_value=1, step=1)
+            column = st.text_input("Column name to change")
+            new_value = st.text_input("New value for the column")
+            submitted_edit = st.form_submit_button("Edit Record")
 
             if submitted_edit:
-                edit_inputs = {'table_name': 'documentos', 'record_id': int(record_id), 'column_to_update': column, 'new_value': new_value}
+                edit_inputs = {'table_name': 'documents', 'record_id': int(record_id), 'column_to_update': column, 'new_value': new_value}
                 edit_crew = Crew(
                     agents=[database_editor_agent, data_verifier_agent],
                     tasks=[edit_database_task, verify_edit_task],
@@ -225,14 +223,14 @@ elif app_mode == "Gerenciar Registros":
                 run_crew_and_display_results(edit_crew, edit_inputs)
 
     with tab3:
-        st.subheader("Deletar um Registro")
-        st.warning("CUIDADO: Esta ação é irreversível.")
+        st.subheader("Delete a Record")
+        st.warning("WARNING: This action is irreversible.")
         with st.form("delete_form"):
-            record_id_del = st.number_input("ID do registro a ser deletado", min_value=1, step=1)
+            record_id_del = st.number_input("ID of the record to delete", min_value=1, step=1)
             
-            confirm_delete = st.checkbox("Eu entendo as consequências e confirmo a exclusão deste registro.")
+            confirm_delete = st.checkbox("I understand the consequences and confirm the deletion of this record.")
             
-            submitted_del = st.form_submit_button("Deletar Registro")
+            submitted_del = st.form_submit_button("Delete Record")
 
             if submitted_del:
                 if confirm_delete:
@@ -244,4 +242,4 @@ elif app_mode == "Gerenciar Registros":
                     )
                     run_crew_and_display_results(crew, {'record_id': int(record_id_del)})
                 else:
-                    st.error("Você precisa marcar a caixa de confirmação para deletar um registro.")
+                    st.error("You must check the confirmation box to delete a record.")

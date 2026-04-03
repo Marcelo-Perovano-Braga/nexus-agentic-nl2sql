@@ -11,66 +11,66 @@ from agents import (
 # Task 1: Data Extraction
 data_extraction_task = Task(
     description=(
-        "Pergunta do usuário: '{question}'\n\n"
-        "Esquema do Banco de Dados Atual:\n{schema_context}\n\n"
-        "Instruções de Execução Estritas:\n"
-        "1. Analise o esquema fornecido e interprete a verdadeira intenção da pergunta do usuário.\n"
-        "2. Escreva uma query SQL correta baseada no esquema fornecido.\n"
-        "3. Use a ferramenta 'SQL Query Executor Tool' para extrair os resultados do banco de dados.\n"
-        "4. Se a query falhar, leia o erro, corrija a sintaxe SQL e execute a ferramenta novamente.\n"
-        "5. Analise os resultados brutos e elabore a resposta final em Português do Brasil de forma clara e concisa.\n"
-        "6. Não inclua a query SQL na resposta final a menos que explicitamente solicitado."
+        "User question: '{question}'\n\n"
+        "Current Database Schema:\n{schema_context}\n\n"
+        "Strict Execution Instructions:\n"
+        "1. Analyze the provided schema and interpret the true intent of the user's question.\n"
+        "2. Write a correct SQL query based on the provided schema.\n"
+        "3. Use the 'SQL Query Executor Tool' to extract results from the database.\n"
+        "4. If the query fails, read the error, correct the SQL syntax, and run the tool again.\n"
+        "5. Analyze the raw results and craft the final response clearly and concisely in English.\n"
+        "6. Do not include the SQL query in the final response unless explicitly requested."
     ),
-    expected_output="A resposta em texto natural contendo os dados exatos solicitados pelo usuário.",
+    expected_output="The natural text response containing the exact data requested by the user.",
     agent=database_specialist_agent
 )
 
 # Task 2: Data Visualization
 data_visualization_task = Task(
     description=(
-        "O usuário quer um gráfico para responder à sua pergunta: '{question}'.\n\n"
-        "Esquema do Banco de Dados:\n{schema_context}\n\n"
-        "Instruções Estritas:\n"
-        "1. Escreva uma query SQL baseada no esquema acima que retorne EXATAMENTE duas colunas (Eixo X para rótulos, Eixo Y para valores numéricos).\n"
-        "2. Execute a 'Data Plotting Tool' passando a query SQL que você criou como argumento.\n"
-        "3. Não invente dados; confie apenas no retorno da ferramenta."
+        "The user wants a chart to answer their question: '{question}'.\n\n"
+        "Database Schema:\n{schema_context}\n\n"
+        "Strict Instructions:\n"
+        "1. Write an SQL query based on the schema above that returns EXACTLY two columns (X-axis for labels, Y-axis for numeric values).\n"
+        "2. Execute the 'Data Plotting Tool' passing the SQL query you created as an argument.\n"
+        "3. Do not invent data; rely solely on the tool's output."
     ),
-    expected_output="A confirmação de que o gráfico foi criado e o caminho onde o arquivo de imagem foi salvo.",
+    expected_output="Confirmation that the chart was created and the path where the image file was saved.",
     agent=data_visualization_agent
 )
 
 # Task 3: Edit Database
 edit_database_task = Task(
     description=(
-        "Atualize um registro específico no banco de dados. Use as seguintes informações fornecidas no contexto: "
-        "- Tabela: '{table_name}' - ID do Registro: '{record_id}' "
-        "- Coluna para Atualizar: '{column_to_update}' - Novo Valor: '{new_value}'"
+        "Update a specific record in the database. Use the following information provided in the context: "
+        "- Table: '{table_name}' - Record ID: '{record_id}' "
+        "- Column to Update: '{column_to_update}' - New Value: '{new_value}'"
     ),
-    expected_output="Uma confirmação de que o registro foi atualizado com sucesso ou uma mensagem de erro clara.",
+    expected_output="A confirmation that the record was successfully updated or a clear error message.",
     agent=database_editor_agent
 )
 
 # Task 4: Post Edit Verification
 verify_edit_task = Task(
     description=(
-        "Um registro na tabela '{table_name}' com o ID '{record_id}' acabou de ser atualizado. "
-        "Sua tarefa é executar uma consulta SQL para buscar este registro específico no banco de dados e exibir seus novos valores."
+        "A record in table '{table_name}' with ID '{record_id}' has just been updated. "
+        "Your task is to execute an SQL query to fetch this specific record from the database and display its new values."
     ),
-    expected_output="O conteúdo completo e atualizado do registro que foi modificado, formatado de forma clara para o usuário.",
+    expected_output="The complete and updated content of the modified record, clearly formatted for the user.",
     agent=data_verifier_agent,
     context=[edit_database_task]
 )
 
 # Task 5: Data Insertion
 insert_data_task = Task(
-    description="Adicione um novo registro na tabela 'documentos' usando os dados fornecidos: nome do arquivo '{nome_arquivo}', tipo '{tipo}', data de criação '{data_criacao}', e resumo '{resumo}'.",
-    expected_output="A confirmação de que o registro foi adicionado com sucesso, incluindo o ID do novo registro.",
+    description="Add a new record to the 'documents' table using the provided data: file name '{file_name}', type '{type}', creation date '{creation_date}', and summary '{summary}'.",
+    expected_output="Confirmation that the record was successfully added, including the ID of the new record.",
     agent=data_inserter_agent
 )
 
 # Task 6: Delete Task
 delete_data_task = Task(
-    description="Delete o registro da tabela 'documentos' com o ID '{record_id}' usando a ferramenta fornecida.",
-    expected_output="A confirmação clara e direta de que o registro foi deletado do banco de dados.",
+    description="Delete the record from the 'documents' table with ID '{record_id}' using the provided tool.",
+    expected_output="Clear and direct confirmation that the record was deleted from the database.",
     agent=data_deleter_agent
 )

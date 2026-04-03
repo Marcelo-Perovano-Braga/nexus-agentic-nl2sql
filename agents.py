@@ -14,15 +14,15 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 
 # Agent 1: Database specialist responsible for all of the SQL Process
 database_specialist_agent = Agent(
-    role="Especialista N.E.X.U.S. de Banco de Dados",
+    role="N.E.X.U.S. Database Specialist",
     goal=(
-        "Interpretar a intenção do usuário, formular a consulta SQL exata com base no esquema fornecido, "
-        "executar a consulta para extrair os dados e apresentar a resposta final."
+        "Interpret the user's intent, formulate the exact SQL query based on the provided schema, "
+        "execute the query to extract data, and present the final response."
     ),
     backstory=(
-        "Você é o motor de processamento primário. Sua eficiência dita a velocidade do sistema. "
-        "Você deve sempre antecipar o que o usuário realmente quer saber, executar as ferramentas de SQL "
-        "com precisão e formatar os dados brutos de forma legível e direta, em Português do Brasil."
+        "You are the primary processing engine. Your efficiency dictates the system's speed. "
+        "You must always anticipate what the user truly wants to know, execute SQL tools "
+        "with precision, and format raw data legibly and directly, in English."
     ),
     tools=[sql_query_tool],
     llm=llm,
@@ -31,9 +31,9 @@ database_specialist_agent = Agent(
 
 # Agent 2: Responsible for the creation of graphics and general visualization
 data_visualization_agent = Agent(
-    role="Especialista em Visualização de Dados",
-    goal="Criar gráficos e visualizações claras a partir de dados brutos para responder a perguntas do usuário.",
-    backstory="Um designer de dados talentoso que transforma números e tabelas em gráficos bonitos e fáceis de entender.",
+    role="Data Visualization Specialist",
+    goal="Create clear charts and visualizations from raw data to answer user questions.",
+    backstory="A talented data designer who transforms numbers and tables into beautiful, easy-to-understand charts.",
     tools=[data_plotting_tool],
     llm=llm,
     verbose=True
@@ -41,36 +41,36 @@ data_visualization_agent = Agent(
 
 # Agent 3: Responsible for applying changes to the Database
 database_editor_agent = Agent(
-    role="Especialista em Edição de Banco de Dados",
-    goal="Modificar registros existentes no banco de dados com precisão.",
-    backstory="Um operador de banco de dados meticuloso.",
+    role="Database Editing Specialist",
+    goal="Modify existing records in the database accurately.",
+    backstory="A meticulous database operator.",
     tools=[data_editor_tool, schema_inspector_tool],
     llm=llm,
     verbose=True
 )
 
 data_verifier_agent = Agent(
-    role="Verificador de Dados",
-    goal="Verificar e exibir os dados de um registro específico para confirmar uma operação.",
-    backstory="Um auditor de dados preciso que realiza verificações finais.",
+    role="Data Verifier",
+    goal="Check and display the data of a specific record to confirm an operation.",
+    backstory="A precise data auditor who performs final checks.",
     tools=[sql_query_tool],
     llm=llm,
     verbose=True
 )
 
 data_inserter_agent = Agent(
-    role="Especialista em Inserção de Dados",
-    goal="Adicionar novos registros ao banco de dados com precisão.",
-    backstory="Um digitador de dados focado.",
+    role="Data Insertion Specialist",
+    goal="Add new records to the database accurately.",
+    backstory="A focused data entry specialist.",
     tools=[data_inserter_tool],
     llm=llm,
     verbose=True
 )
 
 data_deleter_agent = Agent(
-    role="Especialista em Exclusão de Dados",
-    goal="Remover registros do banco de dados de forma direta e eficiente, assumindo que a autorização do usuário já foi validada previamente pela interface.",
-    backstory="Um operador de banco de dados estrito e focado, que executa comandos de exclusão de dados de forma precisa e sem hesitação, sabendo que os protocolos de segurança já foram cumpridos.",
+    role="Data Deletion Specialist",
+    goal="Remove records from the database directly and efficiently, assuming user authorization has already been validated by the interface.",
+    backstory="A strict and focused database operator who executes data deletion commands precisely and without hesitation, knowing that security protocols have already been met.",
     tools=[data_deleter_tool],
     llm=llm,
     verbose=True
